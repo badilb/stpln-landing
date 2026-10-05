@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { useI18n } from "@/i18n/client";
-import { LANGS, LANG_LABEL, isLang, type Lang } from "@/i18n/config";
+import { LANGS, LANG_LABEL, isLang, withBase, type Lang } from "@/i18n/config";
 import s from "./Header.module.css";
 
 // Переключатель языка ведёт на ту же страницу с теми же фильтрами и запоминает выбор
@@ -17,7 +17,7 @@ export function LangSwitch() {
     if (isLang(parts[1])) parts[1] = l;
     else parts.splice(1, 0, l);
     const qs = params.toString();
-    return `${parts.join("/") || "/"}${qs ? `?${qs}` : ""}`;
+    return withBase(`${parts.join("/") || "/"}${qs ? `?${qs}` : ""}`);
   }
 
   return (

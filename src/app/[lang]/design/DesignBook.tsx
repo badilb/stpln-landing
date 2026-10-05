@@ -17,7 +17,7 @@ import cv from "@/components/shop/CatalogView.module.css";
 import ft from "@/components/shop/Filters.module.css";
 import ct from "@/app/[lang]/(shop)/cart/cart.module.css";
 import { useI18n } from "@/i18n/client";
-import { href, tr } from "@/i18n/config";
+import { href, tr, withBase } from "@/i18n/config";
 import { DesignFeedback } from "./DesignFeedback";
 import s from "./design.module.css";
 
@@ -232,7 +232,7 @@ export function DesignBook() {
           <Link className={btn.primary} href={href(lang, "/")}>
             Открыть сайт в&nbsp;этом пресете
           </Link>
-          <button type="button" className={s.textBtn} onClick={() => copy("link", `${location.origin}/${lang}/?preset=${p.id}`)}>
+          <button type="button" className={s.textBtn} onClick={() => copy("link", `${location.origin}${withBase(`/${lang}/`)}?preset=${p.id}`)}>
             {copied === "link" ? "Ссылка скопирована" : "Скопировать ссылку для клиента"}
           </button>
         </div>

@@ -39,6 +39,7 @@ npx serve out      # посмотреть собранную статику
 | `NEXT_PUBLIC_NOINDEX` | `1` — закрыть от поисковиков, пока каталог демо |
 | `NEXT_PUBLIC_WEB3FORMS_KEY` | куда приходят заказы, запросы и ответы по дизайну — письмом |
 | `NEXT_PUBLIC_YM_ID`, `NEXT_PUBLIC_GA_ID` | Метрика / GA, только после согласия на cookies |
+| `NEXT_PUBLIC_BASE_PATH` | подпапка на GitHub Pages — ставит workflow, руками не нужно |
 
 ### Формы без сервера
 
@@ -48,10 +49,35 @@ npx serve out      # посмотреть собранную статику
 Без ключа формы не ломаются: предлагают WhatsApp с готовым текстом или скачать JSON.
 Токены ботов, SMTP-пароли и прочие секреты в браузерный код не кладём.
 
-## Деплой
+## Деплой — GitHub Pages
 
-Vercel (проект `stepline`): `vercel deploy --prod` — Vercel сам видит статический экспорт.
-Подойдёт любой статический хостинг: Netlify, Cloudflare Pages, GitHub Pages — выложить `out/`.
+GitHub Pages сам Next.js не собирает (умеет только Jekyll), поэтому сборку делает
+GitHub Actions: `.github/workflows/pages.yml` → `next build` → `out/` → публикация.
+Каждый push в `main` выкладывает сайт на https://baattezu.github.io/stepline-floors/.
+
+Один раз в репозитории:
+1. **Settings → Pages → Source: GitHub Actions.**
+2. По желанию — **Settings → Secrets and variables → Actions → Variables:**
+   `WEB3FORMS_KEY` (почта для заказов), `YM_ID`, `GA_ID`, `NOINDEX=0` (открыть для поисковиков),
+   `SITE_URL` (если подключите свой домен).
+
+Как это устроено:
+- сайт живёт в подпапке `/stepline-floors`, workflow передаёт её в `NEXT_PUBLIC_BASE_PATH`
+  (`next.config.ts` → `basePath`). `<Link>` добавляет подпапку сам, обычные `<a>`, `<form action>`
+  и редиректы — через `withBase()` из `src/i18n/config.ts`;
+- `public/.nojekyll` — без него Pages не отдаёт папку `_next`;
+- `trailingSlash: true` — страницы лежат как `ru/catalog/index.html`, так Pages их находит;
+- свой домен: Settings → Pages → Custom domain — тогда подпапка пропадёт сама.
+
+Проверить локально «как на Pages»:
+
+```bash
+NEXT_PUBLIC_BASE_PATH=/stepline-floors npm run build
+mkdir -p /tmp/ghp && rm -rf /tmp/ghp/stepline-floors && cp -R out /tmp/ghp/stepline-floors
+npx serve /tmp/ghp    # → http://localhost:3000/stepline-floors/
+```
+
+Подойдёт и любой другой статический хостинг (Netlify, Cloudflare Pages) — выложить `out/`.
 
 ## Где что лежит
 

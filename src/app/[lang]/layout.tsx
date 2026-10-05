@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
       type: "website",
       siteName: "STEPLINE",
       locale: lang === "kk" ? "kk_KZ" : lang === "en" ? "en_US" : "ru_KZ",
-      images: [{ url: "/brand/og.png", width: 1200, height: 630 }],
+      images: [{ url: `${SITE_URL}/brand/og.png`, width: 1200, height: 630 }],
     },
   };
 }

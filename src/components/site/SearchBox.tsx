@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { useI18n } from "@/i18n/client";
-import { href } from "@/i18n/config";
+import { href, withBase } from "@/i18n/config";
 import { Icon } from "./Icon";
 import s from "./Header.module.css";
 
@@ -16,7 +16,7 @@ export function SearchBox({ className }: { className?: string; compact?: boolean
   const q = onCatalog ? (params.get("q") ?? "") : "";
 
   return (
-    <form action={href(lang, "/catalog")} className={className} role="search">
+    <form action={withBase(href(lang, "/catalog/"))} className={className} role="search">
       <label className="visually-hidden" htmlFor={`search-${className}`}>
         {t.header.searchLabel}
       </label>

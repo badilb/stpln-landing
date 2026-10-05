@@ -21,7 +21,15 @@ export function tr(v: L | string | undefined, lang: Lang): string {
   return typeof v === "string" ? v : v[lang] || v.ru;
 }
 
-/** Ссылка с языком: href("kk", "/catalog/parket") → "/kk/catalog/parket" */
+/** Подпапка сайта на GitHub Pages ("/stepline-floors") или "" на своём домене */
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
+/** Для обычных <a>, <form action> и location: <Link> добавляет basePath сам, а они — нет */
+export function withBase(path: string) {
+  return /^(https?:|mailto:|tel:|#)/.test(path) ? path : `${BASE_PATH}${path}`;
+}
+
+/** Ссылка с языком для <Link>: href("kk", "/catalog/parket") → "/kk/catalog/parket" */
 export function href(lang: Lang, path: string) {
   if (/^(https?:|mailto:|tel:|#)/.test(path)) return path;
   return `/${lang}${path === "/" ? "" : path}`;

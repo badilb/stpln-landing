@@ -1,0 +1,64 @@
+# Сборка статики Next.js и публикация на GitHub Pages.
+# GitHub Pages сам Next не собирает (умеет только Jekyll), поэтому собираем здесь:
+# next build → out/ → actions/deploy-pages.
+#
+# Один раз в репозитории: Settings → Pages → Source: «GitHub Actions».
+# Переменные (Settings → Secrets and variables → Actions → вкладка Variables):
+#   WEB3FORMS_KEY, YM_ID, GA_ID — по желанию; SITE_URL — если подключите свой домен.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Pages config
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # /stepline-floors на github.io; пусто, если в настройках Pages подключён свой домен
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || steps.pages.outputs.base_url }}
+          NEXT_PUBLIC_NOINDEX: ${{ vars.NOINDEX || '1' }}
+          NEXT_PUBLIC_WEB3FORMS_KEY: ${{ vars.WEB3FORMS_KEY }}
+          NEXT_PUBLIC_YM_ID: ${{ vars.YM_ID }}
+          NEXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
