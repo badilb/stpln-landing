@@ -1,0 +1,77 @@
+.banner {
+  position: fixed;
+  left: var(--space-4);
+  right: calc(var(--space-4) + 72px);
+  bottom: var(--space-4);
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  max-width: 920px;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule);
+  border-top: 3px solid var(--color-accent);
+  font-size: 14px;
+}
+
+.banner p {
+  flex: 1 1 360px;
+  color: var(--color-muted);
+}
+
+.banner a {
+  color: var(--color-accent);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.primary,
+.secondary {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.primary {
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.primary:hover {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.secondary {
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+.secondary:hover {
+  border-color: var(--color-ink);
+}
+
+@media (max-width: 560px) {
+  .banner {
+    left: var(--space-2);
+    right: var(--space-2);
+    bottom: var(--space-2);
+    padding: var(--space-4);
+  }
+  .actions {
+    width: 100%;
+  }
+  .actions button {
+    flex: 1;
+  }
+}

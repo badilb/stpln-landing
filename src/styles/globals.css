@@ -1,0 +1,168 @@
+/* Hallmark · genre: editorial · macrostructure: Index-First (+ hand-built SVG hero)
+ * theme: custom (vibe: «образцовая книга паркетчика — дуб, бумага, тушь») · paper oklch(96.5% 0.012 80) · accent oklch(50% 0.13 40) терракота
+ * пресеты: oak (по умолчанию) · workshop · showroom · linen — src/design/presets.ts
+ * enrichment: Tier B — SVG-раскладки, построенные геометрией · nav: N1b · footer: Ft1
+ * pre-emit critique: P4 H4 E4 S5 R5 V4
+ */
+
+:root {
+  /* Цвета, шрифты и древесные тона — в src/design/presets.ts (пресеты, см. /design) */
+
+  /* 4-pt шкала */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 144px;
+
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1280px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: var(--heading-weight);
+  line-height: 1.02;
+  letter-spacing: var(--heading-tracking);
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  text-wrap: balance;
+  font-variant-numeric: lining-nums;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.wrap {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Тона товаров: 5 оттенков планки на каждый тон из фильтра «Цвет».
+ * Это цвет товара, а не сайта, поэтому одинаковы во всех пресетах. */
+:root {
+  --tone-light-1: oklch(92% 0.02 85);
+  --tone-light-2: oklch(89% 0.025 82);
+  --tone-light-3: oklch(86% 0.03 80);
+  --tone-light-4: oklch(83% 0.035 78);
+  --tone-light-5: oklch(80% 0.035 76);
+  --tone-beige-1: oklch(85% 0.045 80);
+  --tone-beige-2: oklch(81% 0.05 77);
+  --tone-beige-3: oklch(78% 0.055 74);
+  --tone-beige-4: oklch(74% 0.06 72);
+  --tone-beige-5: oklch(71% 0.06 70);
+  --tone-natural-1: oklch(78% 0.075 75);
+  --tone-natural-2: oklch(73% 0.085 70);
+  --tone-natural-3: oklch(69% 0.09 66);
+  --tone-natural-4: oklch(65% 0.09 62);
+  --tone-natural-5: oklch(61% 0.085 58);
+  --tone-brown-1: oklch(62% 0.1 58);
+  --tone-brown-2: oklch(57% 0.1 54);
+  --tone-brown-3: oklch(53% 0.095 50);
+  --tone-brown-4: oklch(49% 0.085 48);
+  --tone-brown-5: oklch(45% 0.075 46);
+  --tone-dark-1: oklch(44% 0.06 50);
+  --tone-dark-2: oklch(39% 0.055 48);
+  --tone-dark-3: oklch(35% 0.05 46);
+  --tone-dark-4: oklch(31% 0.045 44);
+  --tone-dark-5: oklch(28% 0.04 42);
+  --tone-grey-1: oklch(80% 0.012 75);
+  --tone-grey-2: oklch(74% 0.014 72);
+  --tone-grey-3: oklch(68% 0.015 70);
+  --tone-grey-4: oklch(62% 0.015 68);
+  --tone-grey-5: oklch(56% 0.014 66);
+  --tone-seam: oklch(30% 0.03 50);
+}
+
+/* Цвета логотипа STEPLINE (из исходника: #563212 и #895E3C).
+ * На тёмных темах знак светлеет, иначе тёмно-коричневый пропадает на фоне. */
+:root {
+  --logo-1: oklch(35.5% 0.069 59);
+  --logo-2: oklch(52% 0.074 59);
+}
+
+[data-preset="showroom"],
+[data-theme="order"] {
+  --logo-1: var(--color-ink);
+  --logo-2: var(--color-accent);
+}

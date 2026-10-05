@@ -1,0 +1,32 @@
+.tabs {
+  display: flex;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.tabs button {
+  flex: none;
+  padding: 10px 0;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+
+.tabs button:hover {
+  color: var(--color-ink);
+}
+
+.tabs button[aria-selected="true"] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-accent);
+}

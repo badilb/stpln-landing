@@ -1,0 +1,98 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.article {
+  max-width: 68ch;
+}
+
+.title {
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+.lead {
+  margin-top: var(--space-4);
+  font-size: 18px;
+  color: var(--color-muted);
+}
+
+.section {
+  margin-top: var(--space-7);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.h2 {
+  font-size: 22px;
+}
+
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--color-paper-2);
+  position: sticky;
+  top: var(--space-4);
+}
+
+.card p {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card a {
+  text-decoration: none;
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-weight: var(--heading-weight);
+  font-size: 20px;
+}
+
+.dim {
+  color: var(--color-neutral);
+  font-size: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  margin-top: var(--space-2);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 500;
+}
+
+.btn:hover {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.link {
+  font-size: 14px;
+  color: var(--color-accent);
+  text-decoration: underline !important;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card {
+    position: static;
+  }
+}
+
+.map {
+  margin-top: var(--space-7);
+  height: 420px;
+}

@@ -1,0 +1,47 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  flex: none;
+}
+
+.mark {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+.text {
+  display: grid;
+  gap: 5px;
+  line-height: 1;
+}
+
+/* Надпись — Montserrat SemiBold, как в логотипе (сверено наложением, трекинг 0.036em) */
+.name {
+  font-family: var(--ff-montserrat), "Montserrat", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: 0.036em;
+  color: var(--logo-1);
+}
+
+.tag {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral);
+}
+
+@media (max-width: 520px) {
+  .mark {
+    height: 32px;
+  }
+  .name {
+    font-size: 20px;
+  }
+  .tag {
+    display: none;
+  }
+}

@@ -1,0 +1,85 @@
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 160ms var(--ease-out);
+}
+
+.primary:hover {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.primary:active,
+.icon:active,
+.compare:active {
+  transform: translateY(1px);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-accent);
+  background: var(--color-paper);
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.icon:hover,
+.iconActive {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.compare {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: var(--color-paper);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+
+.compare:hover {
+  color: var(--color-accent);
+}
+
+.compare.on {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.text:hover,
+.text.on {
+  color: var(--color-accent);
+}

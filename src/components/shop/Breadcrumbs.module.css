@@ -1,0 +1,28 @@
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-5) 0 var(--space-4);
+  font-size: 13px;
+  color: var(--color-neutral);
+}
+
+.crumbs li:not(:last-child)::after {
+  content: "/";
+  margin-inline: 8px;
+  color: var(--color-rule);
+}
+
+.crumbs a {
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--color-accent);
+}
+
+.crumbs [aria-current] {
+  color: var(--color-muted);
+}
