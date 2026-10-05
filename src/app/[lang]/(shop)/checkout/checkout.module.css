@@ -385,7 +385,7 @@
   color: var(--color-muted);
 }
 
-.done svg {
+.done > svg {
   color: var(--color-accent);
 }
 

@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# STEPLINE — сайт салона напольных покрытий
 
-## Getting Started
+Шаблон интернет-магазина для **STEPLINE** (Астана, пр. Туран 39/3, [@stepline_astana](https://www.instagram.com/stepline_astana/)):
+паркет, ламинат, кварцвинил SPC/LVT, ковролин, подложка, клей, плинтус. Структура — по образцу
+[mirparketa.kz](https://mirparketa.kz/akczii/), оформление — своё, без «AI-слопа».
 
-First, run the development server:
+Сайт **статический** (Next.js 16, `output: "export"`): собирается в папку `out/`, сервер не нужен.
+Сейчас это версия для итераций с заказчиком: каталог демо, тексты на проверке.
+
+## Что есть
+
+- **Три языка:** `/ru`, `/kk`, `/en`. Корень `/` сам выбирает язык (сохранённый → язык браузера → русский).
+- **Каталог** с фильтрами как у mirparketa (тип укладки, цвет, бренд, класс, толщина, размеры, фаска…), поиском,
+  сортировкой; всё в query-строке — ссылку с подборкой можно переслать.
+- **Товар:** калькулятор «площадь → упаковки» с запасом на подрезку, характеристики, похожие.
+- **Корзина → оформление заказа** (частное лицо / компания, доставка / самовывоз / хранение, оплата), сравнение до 4 товаров.
+- **Акции** (витрина реальных акций из инстаграма), **Новинки**, **Медиа** (видео из Instagram по клику),
+  **«На заказ»** — отдельный раздел другого формата: коллекции из PDF-каталогов фабрик.
+- **Справочные страницы** и **документы** (политика, cookies, оферта, возврат — черновики), баннер cookies.
+- **/design** — витрина дизайн-системы: 5 пресетов, шрифты, цвета с контрастом, компоненты, экспорт токенов
+  и форма «Ваш выбор», которая присылает ответ заказчика письмом с JSON токенов.
+
+## Запуск
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000 → /ru
+npm run build      # статика в out/
+npx serve out      # посмотреть собранную статику
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Переменные окружения
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Все — `NEXT_PUBLIC_*`, вшиваются при сборке (после изменения — пересобрать). Полный список с пояснениями — `.env.example`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Переменная | Зачем |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | адрес сайта для canonical, sitemap, Open Graph |
+| `NEXT_PUBLIC_NOINDEX` | `1` — закрыть от поисковиков, пока каталог демо |
+| `NEXT_PUBLIC_WEB3FORMS_KEY` | куда приходят заказы, запросы и ответы по дизайну — письмом |
+| `NEXT_PUBLIC_YM_ID`, `NEXT_PUBLIC_GA_ID` | Метрика / GA, только после согласия на cookies |
 
-## Learn More
+### Формы без сервера
 
-To learn more about Next.js, take a look at the following resources:
+Заказы, запросы «На заказ» и ответы с `/design` отправляются прямо из браузера через
+[Web3Forms](https://web3forms.com) на почту, к которой привязан ключ (`src/lib/send.ts`).
+Ключ публичный по замыслу сервиса — им можно только отправить письмо на эту почту; от спама — honeypot и лимиты сервиса.
+Без ключа формы не ломаются: предлагают WhatsApp с готовым текстом или скачать JSON.
+Токены ботов, SMTP-пароли и прочие секреты в браузерный код не кладём.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Деплой
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vercel (проект `stepline`): `vercel deploy --prod` — Vercel сам видит статический экспорт.
+Подойдёт любой статический хостинг: Netlify, Cloudflare Pages, GitHub Pages — выложить `out/`.
 
-## Deploy on Vercel
+## Где что лежит
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/app/(root)/            «/» — выбор языка и редирект
+src/app/[lang]/(shop)/     магазин: главная, каталог, товар, корзина, оформление, справочные, документы
+src/app/[lang]/na-zakaz/   «На заказ» — свой layout и тема
+src/app/[lang]/design/     дизайн-система и форма ответа заказчика
+src/components/            шапка, футер, карточки, фильтры, медиа, карта 2ГИС
+src/data/                  категории, демо-товары, коллекции «На заказ», медиа
+src/i18n/                  словари ru / kk / en (ru задаёт ключи)
+src/design/presets.ts      цвета и шрифты — единственный источник, по нему собирается CSS
+src/content/               реквизиты салона, юридические тексты
+docs/                      дневник дизайна, вопросы заказчику
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Перед запуском в прод
+
+1. Заменить демо-каталог (`src/data/products.ts`, флаг `SAMPLE_DATA`) выгрузкой из прайса.
+2. Заполнить реквизиты в документах (`src/content/legal.ts`) и показать юристу.
+3. Вычитать казахский текст (`src/i18n/kk.ts`).
+4. Задать `NEXT_PUBLIC_WEB3FORMS_KEY`, домен, убрать `NEXT_PUBLIC_NOINDEX`.
+
+Открытые вопросы к заказчику — `docs/questions-for-client.md`, история решений — `docs/design-journal.md`.

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 // Корзина и сравнение — в localStorage, без аккаунта. Заказ уходит заявкой
-// менеджеру (/api/lead), как «оформить заказ → менеджер перезвонит» у mirparketa.
+// менеджеру письмом (src/lib/send.ts), как «оформить заказ → менеджер перезвонит» у mirparketa.
 
 function createStore<T>(key: string, fallback: T) {
   let value: T = fallback;
