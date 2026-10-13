@@ -1,5 +1,6 @@
 import type { L } from "@/i18n/config";
-import type { PatternKind, Tone } from "./catalog";
+import { attr, categoryById, subtypeById, type PatternKind, type Tone } from "./catalog";
+import { imageUrl, type Product } from "./products";
 
 // Каталог «На заказ». Источник — PDF-каталоги фабрик, которые присылают STEPLINE.
 // Из каждого PDF переносим сюда коллекцию в едином формате (это и есть «свой каталог»):
@@ -14,10 +15,13 @@ export type OrderDecor = { code: string; name: string; tone: Tone; photo?: strin
 export type OrderCollection = {
   id: string;
   name: string;
-  kind: keyof typeof KINDS;
+  /** Ключ KINDS (образцы) или id раздела каталога (коллекции из CRM). */
+  kind: string;
+  /** Подпись вида; нет — берётся из KINDS. */
+  kindLabel?: L;
   pattern: PatternKind;
-  /** Формат в мм: длина × ширина × толщина */
-  format: string;
+  /** Формат в мм: длина × ширина × толщина; пусто — не показываем */
+  format?: string;
   specs: L[];
   /** TODO: срок поставки и цена «от» — после согласования с поставщиком */
   leadTime?: string;
@@ -25,7 +29,6 @@ export type OrderCollection = {
   decors: OrderDecor[];
 };
 
-export const ORDER_SAMPLE = true;
 
 export const KINDS = {
   laminate: { ru: "Ламинат", kk: "Ламинат", en: "Laminate" },
@@ -135,3 +138,51 @@ export const orderCollections: OrderCollection[] = [
     ],
   },
 ];
+
+export function kindLabel(c: Pick<OrderCollection, "kind" | "kindLabel">): L {
+  return c.kindLabel ?? KINDS[c.kind as keyof typeof KINDS] ?? { ru: c.kind, kk: c.kind, en: c.kind };
+}
+
+const fmtNum = (v: number) => String(v);
+
+/**
+ * Коллекции «На заказ» из товаров CRM (каталог kind = order): товары одной коллекции —
+ * декоры одной карточки. Формат и характеристики — с первого товара коллекции
+ * (у декоров одной коллекции они одинаковые). Страну и бренд не показываем.
+ */
+export function collectionsFromProducts(products: Product[]): OrderCollection[] {
+  const groups = new Map<string, Product[]>();
+  for (const p of products) {
+    const key = p.collection || p.brand || p.category;
+    groups.set(key, [...(groups.get(key) ?? []), p]);
+  }
+  return [...groups.entries()].map(([name, items]) => {
+    const p = items[0];
+    const sub = subtypeById(p.category, p.subtype);
+    const specs: L[] = [
+      sub?.name,
+      p.cls ? { ru: `${p.cls} класс`, kk: `${p.cls} класс`, en: `Class ${p.cls}` } : undefined,
+      p.connection ? attr.connection[p.connection] : undefined,
+      p.chamfer && p.chamfer !== "none" ? attr.chamfer[p.chamfer] : undefined,
+      p.wood ? attr.wood[p.wood] : undefined,
+      p.waterproof ? { ru: "Влагостойкий", kk: "Ылғалға төзімді", en: "Water-resistant" } : undefined,
+      p.warmFloor ? { ru: "Тёплый пол", kk: "Жылы еден", en: "Underfloor heating" } : undefined,
+    ].filter((x): x is L => Boolean(x));
+    return {
+      id: `${p.category}-${name}`.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-"),
+      name,
+      kind: p.category,
+      kindLabel: categoryById[p.category]?.name,
+      pattern: p.pattern,
+      format: p.length && p.width && p.thickness ? `${p.length} × ${p.width} × ${fmtNum(p.thickness)}` : undefined,
+      specs,
+      priceFrom: Math.min(...items.map((x) => x.price)),
+      decors: items.map((x) => ({
+        code: x.sku,
+        name: x.decor.ru,
+        tone: x.tone,
+        photo: x.images?.[0] ? imageUrl(x.images[0].id) : undefined,
+      })),
+    };
+  });
+}

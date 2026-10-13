@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { CrmPreviewBridge } from "@/components/site/CrmPreviewBridge";
 import {
   Commissioner,
   Cormorant_Garamond,
@@ -41,7 +43,8 @@ const fontVars = [montserrat, cormorant, plex, jetbrains, geologica, golos, prat
   .map((f) => f.variable)
   .join(" ");
 
-export const dynamicParams = false;
+// dynamicParams не выключаем: он наследуется вниз, и разделы/товары из CRM, которых не было
+// при сборке, отвечали бы 404. Чужой язык отсекает notFound() ниже по isLang.
 
 export function generateStaticParams() {
   return LANGS.map((lang) => ({ lang }));
@@ -82,6 +85,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
           {children}
           <CookieBanner />
           <Analytics />
+          <Suspense fallback={null}><CrmPreviewBridge /></Suspense>
           <PresetBadge />
         </I18nProvider>
       </body>

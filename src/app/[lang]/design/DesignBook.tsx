@@ -8,7 +8,7 @@ import { categories, tones, type PatternKind } from "@/data/catalog";
 import { contrast, grade, toHex } from "@/design/color";
 import { presetById, presets, presetVars, type FontRole, type Preset } from "@/design/presets";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { products } from "@/data/products";
+import type { Product } from "@/data/products";
 import btn from "@/components/shop/Buttons.module.css";
 import hb from "@/components/home/HomeBlocks.module.css";
 import hd from "@/components/site/Header.module.css";
@@ -98,7 +98,7 @@ function axes(p: Preset) {
   ];
 }
 
-export function DesignBook() {
+export function DesignBook({ products }: { products: Product[] }) {
   const { lang } = useI18n();
   const active = usePreset();
   const p = presetById[active] ?? presets[0];

@@ -8,18 +8,15 @@ import { ProductImage } from "@/components/shop/ProductImage";
 import { Icon } from "@/components/site/Icon";
 import { SITE_URL } from "@/content/site";
 import { attrLabel, categoryById, tones } from "@/data/catalog";
-import { discount, productById, productName, products, sizeOf, subtypeName, unitOf, type Product } from "@/data/products";
+import { discount, imageUrl, productName, sizeOf, subtypeName, unitOf, type Product } from "@/data/products";
+import { getCatalog } from "@/lib/catalog-source";
 import { fmt, getDict, money, num, type Dict } from "@/i18n";
 import { href, isLang, tr, type Lang } from "@/i18n/config";
 import s from "./product.module.css";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ id: p.id }));
-}
-
 export async function generateMetadata({ params }: PageProps<"/[lang]/product/[id]">): Promise<Metadata> {
   const { lang, id } = await params;
-  const p = productById[id];
+  const p = (await getCatalog()).byId[id];
   if (!p || !isLang(lang)) return {};
   return { title: productName(p, lang), description: `${productName(p, lang)} — ${sizeOf(p, lang)}. ${getDict(lang).meta.description}` };
 }
@@ -47,13 +44,16 @@ function specs(p: Product, lang: Lang, t: Dict): [string, string][] {
     [L.water, p.waterproof ? (p.waterNote ? `${t.facets.yes}, ${tr(p.waterNote, lang)}` : t.facets.yes) : undefined],
     [L.packM2, p.packM2 ? num(p.packM2, lang, 3) : undefined],
     [L.packPcs, p.packPcs ? String(p.packPcs) : undefined],
+    // Свободные строки из CRM: гарантия, сертификат…
+    ...(p.specs ?? []).map((r): [string, string] => [tr(r.name, lang), tr(r.value, lang)]),
   ];
   return rows.filter((r): r is [string, string] => Boolean(r[1]));
 }
 
 export default async function ProductPage({ params }: PageProps<"/[lang]/product/[id]">) {
   const { lang, id } = await params;
-  const p = productById[id];
+  const { products, byId } = await getCatalog();
+  const p = byId[id];
   if (!p || !isLang(lang)) notFound();
   const t = getDict(lang);
   const c = categoryById[p.category];
@@ -61,6 +61,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
   const off = discount(p);
   const name = productName(p, lang);
   const unit = t.units[unitOf(p)];
+  const photos = p.images?.length ?? 0;
   const similar = products.filter((x) => x.id !== p.id && x.category === p.category && (x.subtype === p.subtype || x.tone === p.tone)).slice(0, 4);
 
   // Разметка для поисковиков: товар, цена, наличие
@@ -69,6 +70,7 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
     "@type": "Product",
     name,
     sku: p.sku,
+    ...(photos ? { image: `${SITE_URL}${imageUrl(p.images![0].id)}` } : {}),
     brand: { "@type": "Brand", name: p.brand },
     category: tr(c.name, lang),
     url: `${SITE_URL}/${lang}/product/${p.id}`,
@@ -102,14 +104,26 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
               {p.isNew ? <span className={s.new}>{t.card.new}</span> : null}
             </div>
           </div>
-          <div className={s.thumbs}>
-            {[1.2, 2, 0.45].map((z, i) => (
-              <div key={z} className={s.thumb}>
-                <ProductImage product={{ ...p, seed: p.seed + i + 1 }} width={240} height={240} zoom={z} className={s.img} />
+          {photos > 1 ? (
+            <div className={s.thumbs}>
+              {p.images!.slice(1, 4).map((img, i) => (
+                <div key={img.id} className={s.thumb}>
+                  <ProductImage product={p} photo={i + 1} width={240} height={240} className={s.img} alt={`${name} — ${i + 2}`} />
+                </div>
+              ))}
+            </div>
+          ) : photos === 0 ? (
+            <>
+              <div className={s.thumbs}>
+                {[1.2, 2, 0.45].map((z, i) => (
+                  <div key={z} className={s.thumb}>
+                    <ProductImage product={{ ...p, seed: p.seed + i + 1 }} width={240} height={240} zoom={z} className={s.img} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <p className={s.note}>{t.product.imageNote}</p>
+              <p className={s.note}>{t.product.imageNote}</p>
+            </>
+          ) : null}
         </div>
 
         <div className={s.info}>
@@ -163,6 +177,16 @@ export default async function ProductPage({ params }: PageProps<"/[lang]/product
           </dl>
         </div>
         <div className={s.text}>
+          {p.description ? (
+            <div className={s.about}>
+              <h2 className={s.h2}>{t.product.description}</h2>
+              {tr(p.description, lang)
+                .split(/\n{2,}/)
+                .map((para) => (
+                  <p key={para}>{para}</p>
+                ))}
+            </div>
+          ) : null}
           <h2 className={s.h2}>{t.product.deliveryTitle}</h2>
           <p>{t.product.deliveryText}</p>
           <p>

@@ -30,7 +30,9 @@ export type Category = {
   name: L;
   /** Короткое имя для меню */
   menu: L;
-  note: L;
+  note?: L;
+  /** id картинки раздела из CRM (плитка на главной); нет — рисуется раскладка. */
+  image?: string | null;
   pattern: PatternKind;
   unit: Unit;
   subtypes: Subtype[];
@@ -138,6 +140,20 @@ export const categories: Category[] = [
 ];
 
 export const categoryById = Object.fromEntries(categories.map((c) => [c.id, c])) as Record<string, Category>;
+
+/**
+ * Разделы из CRM («Магазин → Разделы») вместо списка выше. Массив и словарь меняются
+ * НА МЕСТЕ: их импортируют полтора десятка модулей (меню, подвал, фильтры, название
+ * товара), и все они сразу видят разделы из CRM без переписывания.
+ * Вызывают: сервер — getCatalog() (src/lib/catalog-source.ts), браузер — CatalogProvider.
+ * Список выше остаётся запасным: без CRM сайт работает на нём.
+ */
+export function applyCategories(list: Category[]) {
+  if (!list.length) return;
+  categories.splice(0, categories.length, ...list);
+  for (const id of Object.keys(categoryById)) delete categoryById[id];
+  for (const c of list) categoryById[c.id] = c;
+}
 
 export function subtypeById(category: string, subtype?: string) {
   return categoryById[category]?.subtypes.find((s) => s.id === subtype);

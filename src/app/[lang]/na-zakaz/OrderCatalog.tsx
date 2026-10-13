@@ -6,7 +6,7 @@ import { Icon } from "@/components/site/Icon";
 import { whatsappLink } from "@/content/site";
 import { sendForm } from "@/lib/send";
 import { tonePalette, tones, type Tone } from "@/data/catalog";
-import { KINDS, ORDER_SAMPLE, type OrderCollection } from "@/data/order-collections";
+import { kindLabel, type OrderCollection } from "@/data/order-collections";
 import { fmt } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { tr } from "@/i18n/config";
@@ -15,7 +15,8 @@ import s from "./order.module.css";
 type Pick = { code: string; name: string; collection: string };
 type Status = "idle" | "sending" | "sent" | "error";
 
-export function OrderCatalog({ collections }: { collections: OrderCollection[] }) {
+/** sample — показываем образцы (сайт без CRM), над каталогом висит пометка. */
+export function OrderCatalog({ collections, sample }: { collections: OrderCollection[]; sample: boolean }) {
   const { lang, t } = useI18n();
   const O = t.order;
   const kinds = useMemo(() => [...new Set(collections.map((c) => c.kind))], [collections]);
@@ -84,7 +85,7 @@ export function OrderCatalog({ collections }: { collections: OrderCollection[] }
               </button>
               {kinds.map((k) => (
                 <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(kind === k ? null : k)}>
-                  {tr(KINDS[k], lang)}
+                  {tr(kindLabel(collections.find((c) => c.kind === k)!), lang)}
                 </button>
               ))}
             </div>
@@ -99,16 +100,24 @@ export function OrderCatalog({ collections }: { collections: OrderCollection[] }
           </div>
         </div>
 
-        {shown.length ? null : <p className={s.none}>{O.noneTone}</p>}
+        {collections.length === 0 ? (
+          <p className={s.none}>{O.empty}</p>
+        ) : shown.length ? null : (
+          <p className={s.none}>{O.noneTone}</p>
+        )}
 
         {shown.map((c) => (
           <article key={c.id} className={s.collection} aria-labelledby={`c-${c.id}`}>
             <div className={s.colInfo}>
-              <p className={s.colKind}>{tr(KINDS[c.kind], lang)}</p>
+              <p className={s.colKind}>{tr(kindLabel(c), lang)}</p>
               <h3 id={`c-${c.id}`} className={s.colName}>
                 {c.name}
               </h3>
-              <p className={s.colFormat}>{lang === "en" ? c.format : c.format.replace(".", ",")} {lang === "en" ? "mm" : "мм"}</p>
+              {c.format ? (
+                <p className={s.colFormat}>
+                  {lang === "en" ? c.format : c.format.replace(".", ",")} {lang === "en" ? "mm" : "мм"}
+                </p>
+              ) : null}
               <ul className={s.colSpecs}>
                 {c.specs.map((x) => (
                   <li key={x.ru}>{tr(x, lang)}</li>
@@ -125,7 +134,12 @@ export function OrderCatalog({ collections }: { collections: OrderCollection[] }
                   <li key={d.code}>
                     <button type="button" className={s.decor} aria-pressed={on} onClick={() => toggle({ code: d.code, name: d.name, collection: c.name })}>
                       <span className={s.decorArt}>
-                        <FloorPattern kind={c.pattern} variant="wood" width={180} height={220} palette={tonePalette(d.tone)} seam="var(--tone-seam)" seed={i * 7 + c.id.length} />
+                        {d.photo ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- фото декора из CRM
+                          <img src={d.photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <FloorPattern kind={c.pattern} variant="wood" width={180} height={220} palette={tonePalette(d.tone)} seam="var(--tone-seam)" seed={i * 7 + c.id.length} />
+                        )}
                         <span className={s.decorMark} aria-hidden>
                           <Icon name={on ? "check" : "plus"} size={18} />
                         </span>
@@ -139,7 +153,7 @@ export function OrderCatalog({ collections }: { collections: OrderCollection[] }
             </ul>
           </article>
         ))}
-        {ORDER_SAMPLE ? <p className={s.sample}>{O.sample}</p> : null}
+        {sample ? <p className={s.sample}>{O.sample}</p> : null}
       </section>
 
       <section className={`wrap ${s.request}`} id="zapros" aria-labelledby="zapros-t">

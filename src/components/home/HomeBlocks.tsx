@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { tonePalette, type PatternKind, type Tone } from "@/data/catalog";
-import { categoryById, subtypeById } from "@/data/catalog";
+import { categories, categoryById, subtypeById } from "@/data/catalog";
+import { imageUrl } from "@/data/products";
 import { videos } from "@/data/media";
 import { site, telHref, whatsappLink } from "@/content/site";
 import { href, tr, type L } from "@/i18n/config";
@@ -16,19 +17,39 @@ import s from "./HomeBlocks.module.css";
 const GEO_MOD: L = { ru: "Геометрический и модульный", kk: "Геометриялық және модульдік", en: "Geometric and modular" };
 const PALUBA: L = { ru: "Паркет палуба", kk: "Паркет палуба", en: "Plank parquet" };
 
-const tiles: { label: () => L; href: string; pattern: PatternKind; tone: Tone; wide?: boolean }[] = [
-  { label: () => categoryById.parket.name, href: "/catalog/parket", pattern: "herringbone", tone: "brown", wide: true },
-  { label: () => categoryById.laminat.name, href: "/catalog/laminat", pattern: "deck", tone: "beige" },
-  { label: () => categoryById.kvarcvinil.menu, href: "/catalog/kvarcvinil", pattern: "deck", tone: "grey" },
-  { label: () => subtypeById("parket", "anglijskaya-elka")!.name, href: "/catalog/parket?type=anglijskaya-elka", pattern: "herringbone", tone: "natural" },
-  { label: () => subtypeById("parket", "francuzskaya-elka")!.name, href: "/catalog/parket?type=francuzskaya-elka", pattern: "chevron", tone: "light" },
-  { label: () => PALUBA, href: "/catalog/parket?type=paluba", pattern: "deck", tone: "natural", wide: true },
-  { label: () => GEO_MOD, href: "/catalog/parket?type=geometricheskij,modulnyj", pattern: "geometric", tone: "dark", wide: true },
-  { label: () => categoryById.kovrolin.name, href: "/catalog/kovrolin", pattern: "carpet", tone: "grey" },
-  { label: () => categoryById.podlozhka.name, href: "/catalog/podlozhka", pattern: "underlay", tone: "beige" },
-  { label: () => categoryById.klej.name, href: "/catalog/klej", pattern: "adhesive", tone: "light" },
-  { label: () => categoryById.plintus.name, href: "/catalog/plintus", pattern: "skirting", tone: "light" },
+type Tile = { cat: string; sub?: string; label?: L; href: string; pattern: PatternKind; tone: Tone; wide?: boolean };
+
+const tiles: Tile[] = [
+  { cat: "parket", href: "/catalog/parket", pattern: "herringbone", tone: "brown", wide: true },
+  { cat: "laminat", href: "/catalog/laminat", pattern: "deck", tone: "beige" },
+  { cat: "kvarcvinil", href: "/catalog/kvarcvinil", pattern: "deck", tone: "grey" },
+  { cat: "parket", sub: "anglijskaya-elka", href: "/catalog/parket?type=anglijskaya-elka", pattern: "herringbone", tone: "natural" },
+  { cat: "parket", sub: "francuzskaya-elka", href: "/catalog/parket?type=francuzskaya-elka", pattern: "chevron", tone: "light" },
+  { cat: "parket", sub: "paluba", label: PALUBA, href: "/catalog/parket?type=paluba", pattern: "deck", tone: "natural", wide: true },
+  { cat: "parket", sub: "geometricheskij", label: GEO_MOD, href: "/catalog/parket?type=geometricheskij,modulnyj", pattern: "geometric", tone: "dark", wide: true },
+  { cat: "kovrolin", href: "/catalog/kovrolin", pattern: "carpet", tone: "grey" },
+  { cat: "podlozhka", href: "/catalog/podlozhka", pattern: "underlay", tone: "beige" },
+  { cat: "klej", href: "/catalog/klej", pattern: "adhesive", tone: "light" },
+  { cat: "plintus", href: "/catalog/plintus", pattern: "skirting", tone: "light" },
 ];
+
+/** Плитки на сейчас: разделы из CRM. Скрытый в CRM раздел (или вид укладки) — плитка
+ *  пропадает; новый раздел — добавляется в конец со своим рисунком. */
+function currentTiles(): (Tile & { text: L; image?: string | null })[] {
+  const shown = tiles.flatMap((tl) => {
+    const c = categoryById[tl.cat];
+    if (!c) return [];
+    const st = tl.sub ? subtypeById(tl.cat, tl.sub) : undefined;
+    if (tl.sub && !st) return [];
+    // Картинка раздела из CRM — только на плитке самого раздела, не вида укладки.
+    return [{ ...tl, text: tl.label ?? st?.name ?? (tl.cat === "kvarcvinil" ? c.menu : c.name), image: tl.sub ? null : c.image }];
+  });
+  const known = new Set(tiles.map((tl) => tl.cat));
+  const added = categories
+    .filter((c) => !known.has(c.id))
+    .map((c) => ({ cat: c.id, href: `/catalog/${c.id}`, pattern: c.pattern, tone: "natural" as Tone, text: c.name, image: c.image }));
+  return [...shown, ...added];
+}
 
 const WOODEN = new Set<PatternKind>(["deck", "herringbone", "chevron", "geometric"]);
 
@@ -40,11 +61,14 @@ export async function CategoryTiles() {
         {t.home.catalog}
       </h2>
       <div className={s.tiles}>
-        {tiles.map((tl, i) => {
-          const label = tr(tl.label(), lang);
+        {currentTiles().map((tl, i) => {
+          const label = tr(tl.text, lang);
           return (
             <Link key={tl.href} href={href(lang, tl.href)} className={`${s.tile} ${tl.wide ? s.wide : ""}`}>
-              {WOODEN.has(tl.pattern) ? (
+              {tl.image ? (
+                // eslint-disable-next-line @next/next/no-img-element -- картинка раздела из CRM, кэшируется навсегда
+                <img src={imageUrl(tl.image)} alt="" loading="lazy" className={s.tileArt} style={{ objectFit: "cover" }} />
+              ) : WOODEN.has(tl.pattern) ? (
                 <FloorPattern kind={tl.pattern} variant="wood" width={tl.wide ? 600 : 300} height={300} palette={tonePalette(tl.tone)} seam="var(--tone-seam)" seed={i * 5} className={s.tileArt} />
               ) : (
                 <span className={s.tileArt} style={{ background: `var(--tone-${tl.tone}-2)`, color: "var(--tone-seam)" }}>
