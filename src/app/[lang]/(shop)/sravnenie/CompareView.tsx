@@ -5,7 +5,8 @@ import { CartButton } from "@/components/shop/Buttons";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { Icon } from "@/components/site/Icon";
 import { attrLabel, tones } from "@/data/catalog";
-import { productById, productName, sizeOf, subtypeName, unitOf, type Product } from "@/data/products";
+import { productName, sizeOf, subtypeName, unitOf, type Product } from "@/data/products";
+import { useCatalog } from "@/lib/catalog-client";
 import { fmt, money, num, type Dict } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { href, tr, type Lang } from "@/i18n/config";
@@ -31,6 +32,7 @@ function rows(lang: Lang, t: Dict): [string, (p: Product) => string | undefined]
 }
 
 export function CompareView() {
+  const { byId: productById } = useCatalog();
   const { lang, t } = useI18n();
   const ids = useCompare();
   const items = ids.map((id) => productById[id]).filter(Boolean);

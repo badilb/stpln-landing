@@ -1,5 +1,5 @@
 import { attr, attrLabel, categoryById, subtypeById, tones, type AttrKey } from "@/data/catalog";
-import { discount, productName, products, sizeOf, type Product } from "@/data/products";
+import { discount, productName, sizeOf, type Product } from "@/data/products";
 import { LANGS, tr, type Lang } from "@/i18n/config";
 import type { Dict } from "@/i18n";
 
@@ -10,7 +10,8 @@ export type Query = Record<string, string | string[] | undefined>;
 export type Facet = {
   key: keyof Dict["facets"];
   value: (p: Product) => string | undefined;
-  label?: (v: string, lang: Lang, t: Dict) => string;
+  /** base — товары текущей области: из них, например, берётся страна бренда */
+  label?: (v: string, lang: Lang, t: Dict, base: Product[]) => string;
   order?: (a: string, b: string) => number;
 };
 
@@ -43,8 +44,8 @@ export const facets: Facet[] = [
   {
     key: "brand",
     value: (p) => p.brand,
-    label: (v, lang) => {
-      const p = products.find((x) => x.brand === v);
+    label: (v, lang, _t, base) => {
+      const p = base.find((x) => x.brand === v);
       return p?.country ? `${v} (${tr(p.country, lang)})` : v;
     },
   },
@@ -143,5 +144,5 @@ export function facetOptions(base: Product[], q: Query, f: Facet, lang: Lang, t:
   return [...all]
     .filter((v) => (counts.get(v) ?? 0) > 0 || selected.includes(v))
     .sort(f.order ?? ((a, b) => a.localeCompare(b, "ru")))
-    .map((v) => ({ value: v, label: f.label ? f.label(v, lang, t) : v, count: counts.get(v) ?? 0 }));
+    .map((v) => ({ value: v, label: f.label ? f.label(v, lang, t, base) : v, count: counts.get(v) ?? 0 }));
 }

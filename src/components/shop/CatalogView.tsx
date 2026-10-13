@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { categories, categoryById } from "@/data/catalog";
-import { products } from "@/data/products";
+import type { Product } from "@/data/products";
+import { useCatalog } from "@/lib/catalog-client";
 import { fmt } from "@/i18n";
 import { href, tr } from "@/i18n/config";
 import { useI18n } from "@/i18n/client";
@@ -36,7 +37,7 @@ type Props = {
   basePath: string;
 };
 
-function scopeProducts(scope: Scope) {
+function scopeProducts(products: Product[], scope: Scope) {
   switch (scope.kind) {
     case "category":
       return products.filter((p) => p.category === scope.id);
@@ -50,7 +51,7 @@ function scopeProducts(scope: Scope) {
 }
 
 export function CatalogView(props: Props) {
-  // useSearchParams на статике требует Suspense: до гидрации — список без фильтров
+  // useSearchParams требует Suspense: до гидрации — список без фильтров
   return (
     <Suspense fallback={<CatalogInner {...props} query={{}} />}>
       <WithQuery {...props} />
@@ -69,7 +70,8 @@ function WithQuery(props: Props) {
 
 function CatalogInner({ title, intro, hero, scope, defaultSort, crumbs, basePath, query: raw }: Props & { query: Query }) {
   const { lang, t } = useI18n();
-  const all = scopeProducts(scope);
+  const { products } = useCatalog();
+  const all = scopeProducts(products, scope);
   const category = scope.kind === "category" ? categoryById[scope.id] : undefined;
   const query: Query = defaultSort && !raw.sort ? { ...raw, sort: defaultSort } : raw;
   const touched = Object.keys(raw).length > 0;

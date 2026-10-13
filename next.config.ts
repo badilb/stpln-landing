@@ -1,15 +1,11 @@
 import type { NextConfig } from "next";
 
-// Сайт собирается в статику (папка out/): без сервера, можно выложить на Vercel,
-// Netlify, GitHub Pages или любой хостинг. Формы уходят через Web3Forms (src/lib/send.ts).
-// На GitHub Pages сайт живёт в подпапке (/stepline-floors) — её задаёт workflow
-// через NEXT_PUBLIC_BASE_PATH. На своём домене или локально переменная пустая.
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-
+// Сайт работает Node-сервером (`next start`, в Docker — standalone-сборка): каталог берётся
+// из CRM на запросе и кэшируется, а CRM после правки товара просит перерисовать страницы
+// (src/lib/catalog-source.ts, src/app/api/revalidate/route.ts).
 const nextConfig: NextConfig = {
-  output: "export",
-  basePath,
-  // /ru/catalog/ → /ru/catalog/index.html — так статические хостинги отдают страницы без настроек
+  output: "standalone",
+  // /ru/catalog/ — адреса со слэшем, как были у статической версии: ссылки не меняются
   trailingSlash: true,
 };
 

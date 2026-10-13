@@ -194,6 +194,14 @@
   color: var(--color-accent);
 }
 
+/* Описание из CRM — свой блок над «Доставкой»: отступ отделяет его от следующего заголовка */
+.about {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  color: var(--color-ink);
+}
+
 .warn {
   padding: var(--space-4);
   background: var(--color-paper-2);

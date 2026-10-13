@@ -4,8 +4,9 @@
 паркет, ламинат, кварцвинил SPC/LVT, ковролин, подложка, клей, плинтус. Структура — по образцу
 [mirparketa.kz](https://mirparketa.kz/akczii/), оформление — своё, без «AI-слопа».
 
-Сайт **статический** (Next.js 16, `output: "export"`): собирается в папку `out/`, сервер не нужен.
-Сейчас это версия для итераций с заказчиком: каталог демо, тексты на проверке.
+Сайт — **Next.js 16 сервер** (`output: "standalone"`, Docker). Каталог берётся из CRM
+([`../crm-stpln`](../crm-stpln), раздел «Магазин → Каталог») по API; без CRM — демо-каталог.
+Тексты пока на проверке у заказчика.
 
 ## Что есть
 
@@ -24,22 +25,26 @@
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000 → /ru
-npm run build      # статика в out/
-npx serve out      # посмотреть собранную статику
+cp .env.example .env.local   # CRM_API_URL — где API CRM; пусто — демо-каталог
+npm run dev                  # http://localhost:3000 → /ru
+npm run build && npm start   # как на сервере
 ```
+
+Из папки `stepline/` всё сразу (CRM + сайт): `make setup`, `make seed`, `make dev` — сайт на :3010.
 
 ## Переменные окружения
 
-Все — `NEXT_PUBLIC_*`, вшиваются при сборке (после изменения — пересобрать). Полный список с пояснениями — `.env.example`.
+`NEXT_PUBLIC_*` вшиваются при сборке (после изменения — пересобрать), остальные читаются сервером
+при старте. Полный список с пояснениями — `.env.example`.
 
 | Переменная | Зачем |
 | --- | --- |
+| `CRM_API_URL` | адрес API CRM, откуда сервер сайта берёт каталог (в docker — `http://api:8000`); пусто — демо |
+| `REVALIDATE_SECRET` | общий секрет с CRM: после правки товара CRM просит сайт обновить каталог |
 | `NEXT_PUBLIC_SITE_URL` | адрес сайта для canonical, sitemap, Open Graph |
 | `NEXT_PUBLIC_NOINDEX` | `1` — закрыть от поисковиков, пока каталог демо |
 | `NEXT_PUBLIC_WEB3FORMS_KEY` | куда приходят заказы, запросы и ответы по дизайну — письмом |
 | `NEXT_PUBLIC_YM_ID`, `NEXT_PUBLIC_GA_ID` | Метрика / GA, только после согласия на cookies |
-| `NEXT_PUBLIC_BASE_PATH` | подпапка на GitHub Pages — ставит workflow, руками не нужно |
 
 ### Формы без сервера
 
@@ -49,56 +54,33 @@ npx serve out      # посмотреть собранную статику
 Без ключа формы не ломаются: предлагают WhatsApp с готовым текстом или скачать JSON.
 Токены ботов, SMTP-пароли и прочие секреты в браузерный код не кладём.
 
-## Деплой — GitHub Pages
+## Каталог из CRM
 
-GitHub Pages сам Next.js не собирает (умеет только Jekyll), поэтому сборку делает
-GitHub Actions: `.github/workflows/pages.yml` → `next build` → `out/` → публикация.
-Каждый push в `main` выкладывает сайт на https://baattezu.github.io/stepline-floors/.
+- Сервер сайта читает `GET {CRM_API_URL}/api/v1/public/catalog` (только опубликованные товары) и
+  кэширует ответ с тегом `catalog` (`src/lib/catalog-source.ts`).
+- После сохранения товара CRM дёргает `POST /api/revalidate/` с заголовком `X-Revalidate-Secret` —
+  следующий посетитель видит новые данные. Страховка — сайт сам перечитывает каталог раз в 10 минут.
+- CRM недоступна — сайт отдаёт последний удачный каталог.
+- Фото товаров идут через сайт: `/catalog-media/<id>` → CRM. Нет фото — рисуется схема укладки.
+- Разделы (меню, страницы разделов, плитки главной) приходят из CRM вместе с каталогом; список в
+  `src/data/catalog.ts` — запасной, без CRM. Тона и значения характеристик зеркалятся в CRM
+  (`crm-stpln/api/app/catalog/taxonomy.py`) — менять вместе.
+- Баннеры и подборки главной, тексты и главные акции «Акций», тексты «Новинок» — из CRM
+  («Магазин → Страницы сайта»); пустое место — прежний автоподбор.
+- «На заказ» — товары CRM с `kind=order`, собранные в коллекции; без CRM — образцы
+  (`src/data/order-collections.ts`).
 
-Один раз в репозитории:
-1. **Settings → Pages → Source: GitHub Actions.**
-2. По желанию — **Settings → Secrets and variables → Actions → Variables:**
-   `WEB3FORMS_KEY` (почта для заказов), `YM_ID`, `GA_ID`, `NOINDEX=0` (открыть для поисковиков),
-   `SITE_URL` (если подключите свой домен).
-
-Как это устроено:
-- сайт живёт в подпапке `/stepline-floors`, workflow передаёт её в `NEXT_PUBLIC_BASE_PATH`
-  (`next.config.ts` → `basePath`). `<Link>` добавляет подпапку сам, обычные `<a>`, `<form action>`
-  и редиректы — через `withBase()` из `src/i18n/config.ts`;
-- `public/.nojekyll` — без него Pages не отдаёт папку `_next`;
-- `trailingSlash: true` — страницы лежат как `ru/catalog/index.html`, так Pages их находит;
-- свой домен: Settings → Pages → Custom domain — тогда подпапка пропадёт сама.
-
-Проверить локально «как на Pages»:
+## Деплой на VPS (Docker)
 
 ```bash
-NEXT_PUBLIC_BASE_PATH=/stepline-floors npm run build
-mkdir -p /tmp/ghp && rm -rf /tmp/ghp/stepline-floors && cp -R out /tmp/ghp/stepline-floors
-npx serve /tmp/ghp    # → http://localhost:3000/stepline-floors/
+docker build -t stepline-site \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://stepline.kz \
+  --build-arg NEXT_PUBLIC_NOINDEX=1 .
+docker run -d -p 3000:3000 \
+  -e CRM_API_URL=http://api:8000 \
+  -e REVALIDATE_SECRET=<тот же, что LANDING_REVALIDATE_SECRET в CRM> \
+  stepline-site
 ```
 
-Подойдёт и любой другой статический хостинг (Netlify, Cloudflare Pages) — выложить `out/`.
-
-## Где что лежит
-
-```
-src/app/(root)/            «/» — выбор языка и редирект
-src/app/[lang]/(shop)/     магазин: главная, каталог, товар, корзина, оформление, справочные, документы
-src/app/[lang]/na-zakaz/   «На заказ» — свой layout и тема
-src/app/[lang]/design/     дизайн-система и форма ответа заказчика
-src/components/            шапка, футер, карточки, фильтры, медиа, карта 2ГИС
-src/data/                  категории, демо-товары, коллекции «На заказ», медиа
-src/i18n/                  словари ru / kk / en (ru задаёт ключи)
-src/design/presets.ts      цвета и шрифты — единственный источник, по нему собирается CSS
-src/content/               реквизиты салона, юридические тексты
-docs/                      дневник дизайна, вопросы заказчику
-```
-
-## Перед запуском в прод
-
-1. Заменить демо-каталог (`src/data/products.ts`, флаг `SAMPLE_DATA`) выгрузкой из прайса.
-2. Заполнить реквизиты в документах (`src/content/legal.ts`) и показать юристу.
-3. Вычитать казахский текст (`src/i18n/kk.ts`).
-4. Задать `NEXT_PUBLIC_WEB3FORMS_KEY`, домен, убрать `NEXT_PUBLIC_NOINDEX`.
-
-Открытые вопросы к заказчику — `docs/questions-for-client.md`, история решений — `docs/design-journal.md`.
+Перед контейнером — nginx (TLS, gzip). В CRM задать `LANDING_REVALIDATE_URL=http://<сайт>:3000/api/revalidate/`.
+Сборке CRM не нужна: страницы магазина рендерятся на запросе.

@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next";
-
-export const dynamic = "force-static";
 import { SITE_URL } from "@/content/site";
 import { legalDocs } from "@/content/legal";
 import { categories } from "@/data/catalog";
-import { products } from "@/data/products";
+import { getCatalog } from "@/lib/catalog-source";
 import { LANGS } from "@/i18n/config";
 
 // Все страницы на трёх языках, у каждой — ссылки на языковые версии (hreflang)
-export default function sitemap(): MetadataRoute.Sitemap {
+// Товары — из того же кэша каталога, что и страницы: новый товар попадает в карту сайта сам.
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { products } = await getCatalog();
   const paths = [
     "",
     "/catalog",

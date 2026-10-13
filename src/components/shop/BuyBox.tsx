@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { whatsappLink } from "@/content/site";
-import { productById, productName } from "@/data/products";
+import { productName } from "@/data/products";
+import { useCatalog } from "@/lib/catalog-client";
 import { fmt, money, num } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { addToCart } from "@/lib/stores";
@@ -16,6 +17,7 @@ import s from "./BuyBox.module.css";
 const RESERVE: Record<string, number> = { deck: 7, herringbone: 12, chevron: 15, geometric: 10, modular: 10 };
 
 export function BuyBox({ id }: { id: string }) {
+  const { byId: productById } = useCatalog();
   const { lang, t } = useI18n();
   const p = productById[id];
   const byArea = Boolean(p.packM2);

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { productById } from "@/data/products";
+
+import { useCatalog } from "@/lib/catalog-client";
 import { money } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { href } from "@/i18n/config";
@@ -10,6 +11,7 @@ import { Icon } from "./Icon";
 import s from "./Header.module.css";
 
 export function HeaderCounters() {
+  const { byId: productById } = useCatalog();
   const { lang, t } = useI18n();
   const cart = useCart();
   const compare = useCompare();

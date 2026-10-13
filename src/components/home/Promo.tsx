@@ -5,6 +5,7 @@ import { useState } from "react";
 import { FloorPattern } from "../FloorPattern";
 import { Icon } from "../site/Icon";
 import { tonePalette, type PatternKind, type Tone } from "@/data/catalog";
+import { imageUrl, type Product } from "@/data/products";
 import { useI18n } from "@/i18n/client";
 import { href } from "@/i18n/config";
 import s from "./Promo.module.css";
@@ -17,36 +18,58 @@ const art: { href: string; pattern: PatternKind; tone: Tone; sale?: string }[] =
   { href: "/na-zakaz", pattern: "chevron", tone: "grey" },
 ];
 
-export function Promo() {
+/** Баннер, уже переведённый на язык страницы. product — пол на картинке (фото или раскладка). */
+export type PromoSlide = {
+  kicker?: string;
+  title: string;
+  text?: string;
+  cta?: string;
+  href: string;
+  sale?: string | null;
+  pattern: PatternKind;
+  tone: Tone;
+  product?: Product;
+};
+
+export function Promo({ slides: fromCrm }: { slides?: PromoSlide[] }) {
   const { lang, t } = useI18n();
-  const slides = t.promo.slides.map((s, k) => ({ ...s, ...art[k] }));
+  // Баннеры из CRM («Страницы сайта → Главная»); без CRM — свои тексты сайта.
+  const slides: PromoSlide[] = fromCrm?.length ? fromCrm : t.promo.slides.map((s, k) => ({ ...s, ...art[k] }));
   const [i, setI] = useState(0);
-  const sl = slides[i];
+  const sl = slides[Math.min(i, slides.length - 1)];
+  const photo = sl.product?.images?.[0];
   const go = (d: number) => setI((x) => (x + d + slides.length) % slides.length);
 
   return (
     <section className={`wrap ${s.promo}`} aria-label={t.promo.label}>
       <div className={s.slide} aria-live="polite">
         <div className={s.text}>
-          <p className={s.kicker}>{sl.kicker}</p>
+          {sl.kicker ? <p className={s.kicker}>{sl.kicker}</p> : null}
           <h1 className={s.title}>{sl.title}</h1>
-          <p className={s.lead}>{sl.text}</p>
-          <Link href={href(lang, sl.href)} className={s.cta}>
-            {sl.cta}
-          </Link>
+          {sl.text ? <p className={s.lead}>{sl.text}</p> : null}
+          {sl.cta ? (
+            <Link href={href(lang, sl.href)} className={s.cta}>
+              {sl.cta}
+            </Link>
+          ) : null}
         </div>
         <div className={s.art}>
-          <FloorPattern
-            key={i}
-            kind={sl.pattern}
-            variant="wood"
-            width={720}
-            height={440}
-            palette={tonePalette(sl.tone)}
-            seam="var(--tone-seam)"
-            seed={i * 11}
-            className={s.floor}
-          />
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- фото из CRM кэшируются навсегда, оптимизатор не нужен
+            <img key={i} src={imageUrl(photo.id)} alt="" className={s.floor} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+          ) : (
+            <FloorPattern
+              key={i}
+              kind={sl.product?.pattern ?? sl.pattern}
+              variant="wood"
+              width={720}
+              height={440}
+              palette={tonePalette(sl.product?.tone ?? sl.tone)}
+              seam="var(--tone-seam)"
+              seed={sl.product?.seed ?? i * 11}
+              className={s.floor}
+            />
+          )}
           {sl.sale ? <span className={s.sale}>{sl.sale}</span> : null}
         </div>
       </div>

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { Icon } from "@/components/site/Icon";
 import { whatsappLink } from "@/content/site";
-import { productById, productName, sizeOf, unitOf, type Product } from "@/data/products";
+import { productName, sizeOf, unitOf, type Product } from "@/data/products";
+import { useCatalog } from "@/lib/catalog-client";
 import { fmt, money, num, type Dict } from "@/i18n";
 import { useI18n } from "@/i18n/client";
 import { href, type Lang } from "@/i18n/config";
@@ -12,6 +13,7 @@ import { setCartQty, useCart } from "@/lib/stores";
 import s from "./cart.module.css";
 
 export function useCartLines() {
+  const { byId: productById } = useCatalog();
   const cart = useCart();
   const lines = cart
     .map((l) => ({ ...l, p: productById[l.id] }))

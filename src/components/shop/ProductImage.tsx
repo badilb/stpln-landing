@@ -1,9 +1,9 @@
 import { tonePalette } from "@/data/catalog";
-import type { Product } from "@/data/products";
+import { imageUrl, type Product } from "@/data/products";
 import { FloorPattern } from "../FloorPattern";
 
-// Пока нет фото товаров, «фото» — раскладка этого товара в его тоне.
-// TODO: когда появятся фото из прайса, показывать <Image>, а раскладку оставить запасным вариантом.
+// Фото товара из CRM; пока фото нет — «фото» рисуется: раскладка этого товара в его тоне.
+// photo — какое по счёту фото показать (галерея); нет такого — тоже раскладка.
 
 const WOODEN = new Set(["deck", "herringbone", "chevron", "geometric"]);
 
@@ -14,8 +14,10 @@ export function ProductImage({
   zoom = 1,
   className,
   alt,
+  photo = 0,
 }: {
   product: Product;
+  photo?: number;
   width: number;
   height: number;
   /** >1 — крупнее планка, для «деталь» в галерее */
@@ -24,6 +26,21 @@ export function ProductImage({
   /** Подпись для скринридеров — название товара на текущем языке */
   alt?: string;
 }) {
+  const image = product.images?.[photo];
+  if (image) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- фото уже отдаются CRM в нужном виде и кэшируются навсегда
+      <img
+        src={imageUrl(image.id)}
+        width={width}
+        height={height}
+        alt={alt ?? ""}
+        loading="lazy"
+        className={className}
+        style={{ objectFit: "cover" }}
+      />
+    );
+  }
   const palette = tonePalette(product.tone);
   if (WOODEN.has(product.pattern)) {
     const u = Math.min(width, height) / zoom;

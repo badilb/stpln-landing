@@ -1,6 +1,7 @@
 import { FloorPattern } from "@/components/FloorPattern";
 import { tonePalette } from "@/data/catalog";
-import { orderCollections } from "@/data/order-collections";
+import { collectionsFromProducts, orderCollections } from "@/data/order-collections";
+import { getCatalog } from "@/lib/catalog-source";
 import { fmt } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import { OrderCatalog } from "./OrderCatalog";
@@ -8,15 +9,18 @@ import s from "./order.module.css";
 
 export default async function OrderPage() {
   const { t } = await getI18n();
+  // Каталог «На заказ» ведут в CRM (вкладка «На заказ»); без CRM — образцы коллекций.
+  const catalog = await getCatalog();
+  const collections = catalog.sample ? orderCollections : collectionsFromProducts(catalog.orderProducts);
   // Мозаика первого экрана — по нескольку декоров из каждой коллекции
-  const mosaic = orderCollections.flatMap((c) => c.decors.slice(0, 3).map((d) => ({ ...d, pattern: c.pattern }))).slice(0, 12);
-  const total = orderCollections.reduce((a, c) => a + c.decors.length, 0);
+  const mosaic = collections.flatMap((c) => c.decors.slice(0, 3).map((d) => ({ ...d, pattern: c.pattern }))).slice(0, 12);
+  const total = collections.reduce((a, c) => a + c.decors.length, 0);
 
   return (
     <>
       <section className={`wrap ${s.hero}`}>
         <div className={s.heroText}>
-          <p className={s.kicker}>{fmt(t.order.kicker, { c: orderCollections.length, d: total })}</p>
+          <p className={s.kicker}>{fmt(t.order.kicker, { c: collections.length, d: total })}</p>
           <h1 className={s.heroTitle}>{t.order.title}</h1>
           <p className={s.heroLead}>{t.order.lead}</p>
           <a href="#kollekcii" className={s.heroCta}>
@@ -45,7 +49,7 @@ export default async function OrderPage() {
         </ol>
       </section>
 
-      <OrderCatalog collections={orderCollections} />
+      <OrderCatalog collections={collections} sample={catalog.sample} />
     </>
   );
 }
